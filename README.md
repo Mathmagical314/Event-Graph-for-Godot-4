@@ -1,6 +1,6 @@
 # 🌊 EventGraph for Godot 4
 
-![Godot Engine](https://img.shields.io/badge/Godot_4.3+-478CBF?logo=godot-engine&logoColor=white)
+
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 
 **EventGraph** is a robust, resource-driven visual scripting system for Godot 4. Inspired by Unreal Engine's Blueprints and modular flow-based logic, it provides a powerful way to decouple game logic from code, making it perfect for dialogue systems, quest logic, and complex state machines.
