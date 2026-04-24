@@ -376,34 +376,22 @@ func _on_graph_gui_input(event: InputEvent) -> void:
 
 
 func _show_context_menu(at_screen_pos: Vector2) -> void:
-	var popup := PopupMenu.new()
-	var registry := EventNodeRegistry.get_registry()
-	var categories := {"Flow": [], "Logic": [], "Action": [], "Event": [],"Data":[],"Utility":[]}
-
-	for key in registry:
-		var cat: String = registry[key]["category"]
-		if not categories.has(cat):
-			categories[cat] = []
-		categories[cat].append(key)
-
-	var idx := 0
-	for cat in ["Flow", "Logic", "Action", "Event", "Data", "Utility"]:
-		if not categories.has(cat) or categories[cat].is_empty():
-			continue
-		popup.add_separator(cat)
-		for key in categories[cat]:
-			popup.add_item(registry[key]["label"], idx)
-			popup.set_item_metadata(popup.item_count - 1, key)
-			idx += 1
-
-	popup.id_pressed.connect(func(_id: int) -> void:
-		for i in popup.item_count:
-			if popup.get_item_id(i) == _id:
-				var key: String = str(popup.get_item_metadata(i))
-				_add_node_at_mouse(key)
-				break
+	var popup := PopupPanel.new()
+	
+	var palette := PaletteScript.new()
+	palette.is_popup = true
+	popup.add_child(palette)
+	
+	palette.node_type_selected.connect(func(key: String) -> void:
+		_add_node_at_mouse(key)
+		popup.hide()
+		popup.queue_free()
 	)
-
+	
+	# Close on click-away is handled by PopupPanel naturally in many cases,
+	# but we ensure it's removed from the tree when hidden.
+	popup.popup_hide.connect(popup.queue_free)
+	
 	get_tree().root.add_child(popup)
 	popup.popup(Rect2i(at_screen_pos, Vector2i.ZERO))
 

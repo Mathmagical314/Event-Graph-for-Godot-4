@@ -17,27 +17,32 @@ const CATEGORY_COLORS := {
 
 var _tree: Tree
 var _search: LineEdit
+var is_popup: bool = false
 
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(180, 0)
+	if not is_popup:
+		custom_minimum_size = Vector2(180, 0)
+	else:
+		custom_minimum_size = Vector2(250, 350)
 
 	var vbox := VBoxContainer.new()
 	add_child(vbox)
 
-	# Header label
-	var header := Label.new()
-	header.text = "Node Palette"
-	header.add_theme_font_size_override("font_size", 14)
-	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(header)
-
-	vbox.add_child(HSeparator.new())
+	if not is_popup:
+		# Header label
+		var header := Label.new()
+		header.text = "Node Palette"
+		header.add_theme_font_size_override("font_size", 14)
+		header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vbox.add_child(header)
+		vbox.add_child(HSeparator.new())
 
 	# Search field
 	_search = LineEdit.new()
 	_search.placeholder_text = "Search…"
 	_search.text_changed.connect(_on_search_changed)
+	_search.gui_input.connect(_on_search_gui_input)
 	vbox.add_child(_search)
 
 	# Tree
@@ -48,20 +53,34 @@ func _ready() -> void:
 	_tree.item_activated.connect(_on_item_activated)
 	vbox.add_child(_tree)
 
-	# Add button
-	var add_btn := Button.new()
-	add_btn.text = "+ Add to Graph"
-	add_btn.pressed.connect(_on_add_pressed)
-	vbox.add_child(add_btn)
+	if not is_popup:
+		# Add button
+		var add_btn := Button.new()
+		add_btn.text = "+ Add to Graph"
+		add_btn.pressed.connect(_on_add_pressed)
+		vbox.add_child(add_btn)
 
-	# Refresh button
-	var refresh_btn := Button.new()
-	refresh_btn.text = "↻ Refresh"
-	refresh_btn.tooltip_text = "Rescan custom_nodes/ directory"
-	refresh_btn.pressed.connect(_on_refresh_pressed)
-	vbox.add_child(refresh_btn)
+		# Refresh button
+		var refresh_btn := Button.new()
+		refresh_btn.text = "↻ Refresh"
+		refresh_btn.tooltip_text = "Rescan custom_nodes/ directory"
+		refresh_btn.pressed.connect(_on_refresh_pressed)
+		vbox.add_child(refresh_btn)
 
 	_populate("")
+	
+	if is_popup:
+		_search.grab_focus()
+
+
+func _on_search_gui_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed:
+		if event.keycode == KEY_DOWN:
+			_tree.grab_focus()
+			if _tree.get_root() and _tree.get_root().get_first_child():
+				_tree.get_root().get_first_child().select(0)
+		elif event.keycode == KEY_ENTER:
+			_on_item_activated()
 
 
 func _populate(filter: String) -> void:
