@@ -41,9 +41,9 @@ EventGraph comes packed with a variety of nodes to handle complex logic right ou
 1. **Create a Graph**: In the FileSystem dock, right-click and select **Create New Resource**, then choose `EventGraphResource`.
 2. **Edit Logic**: Double-click the newly created resource to open it in the EventGraph editor. Add nodes (Right-click to open the Palette) and connect them.
 3. **Run in Scene**: 
-    - Add an `EventGraphPlayer` node to your scene.
-    - Assign your Graph Resource to the `Graph` property.
-    - Call `player.play()` from a script or enable the `Auto Play` option in the inspector.
+	- Add an `EventGraphPlayer` node to your scene.
+	- Assign your Graph Resource to the `Graph` property.
+	- Call `player.play()` from a script or enable the `Auto Play` option in the inspector.
 
 ---
 

@@ -8,16 +8,16 @@ This addon follows a design that completely separates data/logic (**Resource**) 
 
 ### Core Components
 *   **EventGraphResource** (`event_graph_resource.gd`):
-    *   A top-level Resource file (`.tres` or `.res`) that holds the data for the entire graph.
-    *   Manages the list of nodes and connection information, ensuring reliable saving and restoration via serialization.
+	*   A top-level Resource file (`.tres` or `.res`) that holds the data for the entire graph.
+	*   Manages the list of nodes and connection information, ensuring reliable saving and restoration via serialization.
 *   **EventNodeResource** (`event_node_resource.gd`):
-    *   The base Resource class for all nodes.
-    *   Contains node execution logic, port definitions, and display settings (title, category color, etc.). This class is inherited when creating custom nodes.
+	*   The base Resource class for all nodes.
+	*   Contains node execution logic, port definitions, and display settings (title, category color, etc.). This class is inherited when creating custom nodes.
 *   **EventNodeRegistry** (`event_node_registry.gd`):
-    *   A registry that automatically scans directories under `addons/event_graph/core/nodes/` (specifically `event`, `flow`, `logic`, `action`, `data`, and `utility`) and registers the list of available nodes.
+	*   A registry that automatically scans directories under `addons/event_graph/core/nodes/` (specifically `event`, `flow`, `logic`, `action`, `data`, and `utility`) and registers the list of available nodes.
 *   **EventGraphProcessor** (`event_graph_processor.gd`):
-    *   The graph execution engine (Runtime).
-    *   Monitors `trigger_fired` signals and controls execution propagation (triggers) and variable dependency resolution (data flow).
+	*   The graph execution engine (Runtime).
+	*   Monitors `trigger_fired` signals and controls execution propagation (triggers) and variable dependency resolution (data flow).
 
 ---
 
