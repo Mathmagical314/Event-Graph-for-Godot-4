@@ -47,33 +47,89 @@ EventGraph comes packed with a variety of nodes to handle complex logic right ou
 
 ---
 
-## 🛠 Extending EventGraph
+## 4. Creating Custom Nodes
 
-To create a custom node, simply create a new script extending `EventNodeResource`:
+To add a new node, create a script inheriting from `EventNodeResource` in the appropriate directory (e.g., `addons/event_graph/core/nodes/action/`). The `EventNodeRegistry` will automatically recognize it.
 
+### Action Node Template (Stateful/Impure)
 ```gdscript
+@tool
 extends EventNodeResource
-class_name EventNodeMyCustomLogic
 
+# Required: Initialize basic node information
 func _init() -> void:
-    node_name = "My Custom Node"
-    category = "Logic"
-    
-    # Add an input execution trigger
-    add_input_trigger("In")
-    # Add an output execution trigger
-    add_output_trigger("Out")
-    # Add a data input port
-    add_input_variable("Message", TYPE_STRING, "Hello!")
+    super()
+    node_name = "MyCustomNode" # Unique internal name
+    title = "My Custom Node"   # Display name in editor
+    category = "Action"        # Category for color/grouping
+    description = "Description of what this node does."
 
-func _execute(processor: EventGraphProcessor, input_trigger_index: int) -> void:
-    # Recursively evaluates and fetches the value connected to port 0
-    var msg = get_input_value(0)
-    print("Executing: ", msg)
+# Define input trigger ports
+func get_trigger_inputs() -> Array[String]:
+    return ["In"]
+
+# Define output trigger ports
+func get_trigger_outputs() -> Array[String]:
+    return ["Out"]
+
+# Define input variable ports
+func get_variable_inputs() -> Array[Dictionary]:
+    return [
+        {"name": "Value1", "type": TYPE_FLOAT},
+        {"name": "Value2", "type": TYPE_FLOAT}
+    ]
+
+# Define output variable ports
+func get_variable_outputs() -> Array[Dictionary]:
+    return [{"name": "Result", "type": TYPE_FLOAT}]
+
+# Execution logic
+func _execute(processor: EventGraphProcessor, port_name: String) -> void:
+    # 1. Fetch input variables (already resolved by the processor)
+    var val1 = get_input_value(0)
+    var val2 = get_input_value(1)
     
-    # Continue the execution flow out of the first output trigger
+    # 2. Process
+    var result = val1 + val2
+    
+    # 3. Store result for output
+    properties["Result"] = result
+    
+    # 4. Pass execution to the next node
     processor.execute_output(self, 0)
 ```
+
+### Pure Data Node Template
+For "Value nodes" or "Math nodes" that return results without triggers:
+```gdscript
+@tool
+extends EventNodeResource
+
+func _init() -> void:
+    super()
+    node_name = "FloatValue"
+    title = "Float Value"
+    category = "Data"
+
+# Return empty for trigger ports
+func get_trigger_inputs() -> Array[String]: return []
+func get_trigger_outputs() -> Array[String]: return []
+
+func get_variable_outputs() -> Array[Dictionary]:
+    return [{"name": "Value", "type": TYPE_FLOAT}]
+
+# Initialize properties so they appear in the inspector
+func _ready():
+    if not properties.has("Value"):
+        properties["Value"] = 0.0
+
+# Required: Inform the processor this is a pure data node
+func is_pure() -> bool:
+    return true
+
+# Required: Processing when a value is requested by the processor
+func evaluate(port_name: String) -> Variant:
+    return properties.get("Value", 0.0)
 
 ---
 
