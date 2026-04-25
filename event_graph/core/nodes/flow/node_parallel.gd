@@ -29,11 +29,19 @@ func get_variable_outputs() -> Array[Dictionary]:
 
 
 func get_custom_actions() -> Array:
-	return [{"label": "Add Output", "method": "add_output_port"}]
+	return [
+		{"label": "Add Output", "method": "add_output_port"},
+		{"label": "Remove Output", "method": "remove_output_port"}
+	]
 
 func add_output_port() -> void:
 	var count: int = properties.get("_output_count", 2)
 	properties["_output_count"] = count + 1
+
+func remove_output_port() -> void:
+	var count: int = properties.get("_output_count", 2)
+	if count > 2:
+		properties["_output_count"] = count - 1
 
 
 func _execute(_port_name: String) -> void:

@@ -31,11 +31,20 @@ func get_variable_outputs() -> Array[Dictionary]:
 
 
 func get_custom_actions() -> Array:
-	return [{"label": "Add Input", "method": "add_input_port"}]
+	return [
+		{"label": "Add Input", "method": "add_input_port"},
+		{"label": "Remove Input", "method": "remove_input_port"}
+	]
 
 func add_input_port() -> void:
 	var count: int = properties.get("_input_count", 2)
 	properties["_input_count"] = count + 1
+
+func remove_input_port() -> void:
+	var count: int = properties.get("_input_count", 2)
+	if count > 2:
+		properties["_input_count"] = count - 1
+		_fired_inputs.clear() # Clear firing state as port count changed
 
 
 func _execute(port_name: String) -> void:
