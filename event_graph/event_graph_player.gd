@@ -1,5 +1,5 @@
 class_name EventGraphPlayer
-extends Node
+extends EventGraph
 
 ## Runtime node that executes a EventGraphResource.
 ## Add this node under an owner Node, assign `event_graph`, then call `start_flow()`.

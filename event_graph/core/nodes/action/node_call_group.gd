@@ -26,6 +26,7 @@ func get_variable_inputs() -> Array[Dictionary]:
 		{"name": "method_name", "type": TYPE_STRING},
 	]
 
+
 func _execute(_port_name: String) -> void:
 	var group: String = properties.get("group_name", "")
 	var method: String = properties.get("method_name", "")

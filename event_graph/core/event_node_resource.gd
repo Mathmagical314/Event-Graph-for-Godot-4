@@ -18,6 +18,9 @@ extends Resource
 ## Set by EventGraphProcessor at runtime.
 var owner_node: Node = null
 
+## The EventGraphProcessor executing this graph.
+var processor: Node = null
+
 # ── Display ──────────────────────────────────────────────────────────────────
 @export_storage var title: String = "Node"
 ## Category used for palette grouping and title-bar colour.
@@ -97,12 +100,17 @@ func _execute(_port_name: String) -> void:
 ## Get the current value of a variable output port.
 ## Override in subclasses that produce data.
 func get_variable_value(port_name: String) -> Variant:
+	if port_name in self and not port_name in ["node_id", "node_name", "graph_pos", "title", "category", "description", "properties"]:
+		return get(port_name)
 	return properties.get(port_name, null)
 
 ## Set the value of a variable input port (called by GraphProcessor before
 ## trigger_input to resolve data dependencies).
 func set_variable_value(port_name: String, value: Variant) -> void:
-	properties[port_name] = value
+	if port_name in self and not port_name in ["node_id", "node_name", "graph_pos", "title", "category", "description", "properties"]:
+		set(port_name, value)
+	else:
+		properties[port_name] = value
 
 
 # ── Display ──────────────────────────────────────────────────────────────────

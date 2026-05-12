@@ -143,32 +143,37 @@ func _build() -> void:
 		})
 
 	# ── Inline property controls ─────────────────────────────────────────
-	if not node_res.properties.is_empty():
-		var has_visible_props := false
-		for key in node_res.properties.keys():
-			if not key.begins_with("_"):
-				has_visible_props = true
-				break
-				
-		if has_visible_props:
-			add_child(HSeparator.new())
-			for key in node_res.properties.keys():
-				if key.begins_with("_"):
-					continue
-				var val = node_res.properties[key]
-				var row2 := HBoxContainer.new()
-				row2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var visual_props := {}
+	# 1. Add exported script variables
+	for prop in node_res.get_property_list():
+		if prop["usage"] & PROPERTY_USAGE_SCRIPT_VARIABLE and prop["usage"] & PROPERTY_USAGE_EDITOR:
+			var key = prop["name"]
+			if not key in ["node_id", "node_name", "graph_pos", "title", "category", "description", "properties"]:
+				if not key.begins_with("_"):
+					visual_props[key] = node_res.get(key)
+	
+	# 2. Add properties dictionary values
+	for key in node_res.properties.keys():
+		if not key.begins_with("_") and not visual_props.has(key):
+			visual_props[key] = node_res.properties[key]
 
-				var lbl := Label.new()
-				lbl.text = key.capitalize()
-				lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-				lbl.custom_minimum_size.x = 80
-				row2.add_child(lbl)
+	if not visual_props.is_empty():
+		add_child(HSeparator.new())
+		for key in visual_props.keys():
+			var val = visual_props[key]
+			var row2 := HBoxContainer.new()
+			row2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
-				var ctrl: Control = _make_control(key, val)
-				row2.add_child(ctrl)
-				_prop_controls[key] = ctrl
-				add_child(row2)
+			var lbl := Label.new()
+			lbl.text = key.capitalize()
+			lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			lbl.custom_minimum_size.x = 80
+			row2.add_child(lbl)
+
+			var ctrl: Control = _make_control(key, val)
+			row2.add_child(ctrl)
+			_prop_controls[key] = ctrl
+			add_child(row2)
 
 	# ── Custom Actions ───────────────────────────────────────────────────
 	if node_res.has_method("get_custom_actions"):
@@ -224,6 +229,14 @@ func get_port_type_id(slot_idx: int, is_output: bool) -> int:
 	return int(info.get("type", TYPE_NIL))
 
 
+func _set_node_property(key: String, val: Variant) -> void:
+	if key in node_res and not key in ["node_id", "node_name", "graph_pos", "title", "category", "description", "properties"]:
+		node_res.set(key, val)
+	else:
+		node_res.properties[key] = val
+	node_res.emit_changed()
+	data_changed.emit(node_res)
+
 func _make_control(key: String, val: Variant) -> Control:
 	match typeof(val):
 		TYPE_FLOAT, TYPE_INT:
@@ -235,9 +248,7 @@ func _make_control(key: String, val: Variant) -> Control:
 			spin.allow_greater = true
 			spin.custom_minimum_size.x = 100
 			spin.value_changed.connect(func(v: float) -> void:
-				node_res.properties[key] = v if typeof(val) == TYPE_FLOAT else int(v)
-				node_res.emit_changed()
-				data_changed.emit(node_res)
+				_set_node_property(key, v if typeof(val) == TYPE_FLOAT else int(v))
 			)
 			return spin
 
@@ -245,9 +256,7 @@ func _make_control(key: String, val: Variant) -> Control:
 			var chk := CheckBox.new()
 			chk.button_pressed = bool(val)
 			chk.toggled.connect(func(v: bool) -> void:
-				node_res.properties[key] = v
-				node_res.emit_changed()
-				data_changed.emit(node_res)
+				_set_node_property(key, v)
 			)
 			return chk
 
@@ -261,9 +270,7 @@ func _make_control(key: String, val: Variant) -> Control:
 				opt.item_selected.connect(func(idx: int) -> void:
 					var new_dict = val.duplicate()
 					new_dict["selected"] = idx
-					node_res.properties[key] = new_dict
-					node_res.emit_changed()
-					data_changed.emit(node_res)
+					_set_node_property(key, new_dict)
 					rebuild_requested.emit()
 				)
 				return opt
@@ -277,9 +284,7 @@ func _make_control(key: String, val: Variant) -> Control:
 			le.text = str(val)
 			le.custom_minimum_size.x = 100
 			le.text_submitted.connect(func(v: String) -> void:
-				node_res.properties[key] = v
-				node_res.emit_changed()
-				data_changed.emit(node_res)
+				_set_node_property(key, v)
 			)
 			return le
 

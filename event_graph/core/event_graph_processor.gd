@@ -1,5 +1,5 @@
 class_name EventGraphProcessor
-extends Node
+extends EventGraph
 
 ## Runtime execution engine for a EventGraphResource.
 ## Implements the spec's trigger propagation and variable resolution:
@@ -13,6 +13,7 @@ signal flow_started
 signal flow_finished
 signal node_executed(node_id: String)
 signal flow_error(message: String)
+signal graph_event_received(event_name: String)
 
 @export var graph: EventGraphResource = null
 @export var owner_node: Node = null
@@ -49,6 +50,11 @@ func stop() -> void:
 		flow_finished.emit()
 
 
+func send_event(event_name: String) -> void:
+	if _running:
+		graph_event_received.emit(event_name)
+
+
 func execute() -> void:
 	if _running:
 		push_warning("[EventGraphProcessor] Already running.")
@@ -78,6 +84,7 @@ func execute() -> void:
 			
 		# Allow nodes to initialize/reset themselves before the flow starts
 		node_res.owner_node = owner_node
+		node_res.processor = self
 		if node_res.has_method("on_flow_start"):
 			node_res.on_flow_start()
 

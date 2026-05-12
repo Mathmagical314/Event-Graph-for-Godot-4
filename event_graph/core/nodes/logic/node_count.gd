@@ -2,17 +2,17 @@
 class_name EventNodeCount2
 extends EventNodeResource
 
+@export var limit: int = 3
+@export var reset_on_start: bool = true
+
+@export_storage var _current_count: int = 0
+
 func _init() -> void:
 	ensure_node_id()
 	node_name   = "Count"
 	title       = "Count"
 	category    = "Logic"
 	description = "Limits execution to a set number of times. Output stops firing when the limit is reached."
-	properties  = { 
-		"limit": 3, 
-		"reset_on_start": true,
-		"_current_count": 0
-	}
 
 
 func get_trigger_inputs() -> Array[String]:
@@ -29,29 +29,25 @@ func get_variable_outputs() -> Array[Dictionary]:
 
 
 func on_flow_start() -> void:
-	if properties.get("reset_on_start", true):
-		properties["_current_count"] = 0
+	if reset_on_start:
+		_current_count = 0
 		emit_changed()
 
 
 func get_variable_value(port_name: String) -> Variant:
 	if port_name == "count":
-		return properties.get("_current_count", 0)
+		return _current_count
 	return super.get_variable_value(port_name)
 
 
 func _execute(port_name: String) -> void:
 	if port_name == "Reset":
-		properties["_current_count"] = 0
+		_current_count = 0
 		emit_changed()
 		return
 		
-	var limit: int = int(properties.get("limit", 3))
-	var count: int = int(properties.get("_current_count", 0))
-	
-	if count < limit:
-		count += 1
-		properties["_current_count"] = count
+	if _current_count < limit:
+		_current_count += 1
 		emit_changed()
 		trigger_output("Out")
 	else:

@@ -2,6 +2,8 @@
 class_name EventNodeAnd2
 extends EventNodeResource
 
+@export_storage var input_count: int = 2
+
 var _fired_inputs: Dictionary = {}
 
 func _init() -> void:
@@ -10,14 +12,15 @@ func _init() -> void:
 	title       = "And"
 	category    = "Logic"
 	description = "Waits for all inputs to fire before firing the output."
-	properties  = { "_input_count": 2 }
 
 
 func get_trigger_inputs() -> Array[String]:
-	var count: int = properties.get("_input_count", 2)
 	var inputs: Array[String] = []
-	for i in range(count):
+	for i in range(input_count):
 		inputs.append("In " + str(i + 1))
+	for i in range(input_count):
+		inputs.append("Cancel " + str(i + 1))
+	inputs.append("Cancel All")
 	return inputs
 
 func get_trigger_outputs() -> Array[String]:
@@ -37,26 +40,37 @@ func get_custom_actions() -> Array:
 	]
 
 func add_input_port() -> void:
-	var count: int = properties.get("_input_count", 2)
-	properties["_input_count"] = count + 1
+	input_count += 1
+	emit_changed()
 
 func remove_input_port() -> void:
-	var count: int = properties.get("_input_count", 2)
-	if count > 2:
-		properties["_input_count"] = count - 1
+	if input_count > 2:
+		input_count -= 1
 		_fired_inputs.clear() # Clear firing state as port count changed
+		emit_changed()
 
 
 func _execute(port_name: String) -> void:
-	_fired_inputs[port_name] = true
-	
-	var count: int = properties.get("_input_count", 2)
-	var all_fired := true
-	for i in range(count):
-		if not _fired_inputs.has("In " + str(i + 1)):
-			all_fired = false
-			break
-			
-	if all_fired:
+	if port_name == "Cancel All":
 		_fired_inputs.clear()
-		trigger_output("Out")
+		return
+	
+	if port_name.begins_with("Cancel "):
+		var idx_str = port_name.replace("Cancel ", "")
+		var in_name = "In " + idx_str
+		if _fired_inputs.has(in_name):
+			_fired_inputs.erase(in_name)
+		return
+
+	if port_name.begins_with("In "):
+		_fired_inputs[port_name] = true
+		
+		var all_fired := true
+		for i in range(input_count):
+			if not _fired_inputs.has("In " + str(i + 1)):
+				all_fired = false
+				break
+				
+		if all_fired:
+			_fired_inputs.clear()
+			trigger_output("Out")

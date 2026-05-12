@@ -2,6 +2,7 @@
 class_name EventNodePrint
 extends EventNodeResource
 
+@export var Text:String
 func _init() -> void:
 	ensure_node_id()
 	node_name   = "Print"
@@ -25,5 +26,5 @@ func get_variable_outputs() -> Array[Dictionary]:
 
 
 func _execute(_port_name: String) -> void:
-	print("[EventGraph] ", properties.get("message", ""))
+	print("[EventGraph] ", Text)
 	trigger_output("Out")
